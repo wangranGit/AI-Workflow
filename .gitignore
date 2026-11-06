@@ -1,0 +1,17 @@
+# OS & Editor Files
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*~
+
+# Temporary & Build files
+tmp/
+temp/
+build/
+dist/
+*.log
+
+# Project-specific overrides (for projects adopting this template)
+workflow.config.local.json

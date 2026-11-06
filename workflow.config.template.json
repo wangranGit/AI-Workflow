@@ -1,0 +1,29 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Project Workflow Configuration",
+  "description": "Configuration file for AI-Workflow automated engineering pipeline",
+  "projectName": "MyProject",
+  "projectType": "general",
+  "version": "1.0.0",
+  "git": {
+    "mainBranch": "main",
+    "featureBranchPrefix": "feature/",
+    "fixBranchPrefix": "fix/"
+  },
+  "gate": {
+    "command": "make check",
+    "timeoutSeconds": 30
+  },
+  "quality": {
+    "maxFileLinesWarning": 500,
+    "maxFileLinesError": 800,
+    "requireSevenDimensionReview": true,
+    "disallowSilentErrorSwallowing": true
+  },
+  "observability": {
+    "enablePersistentMetrics": true,
+    "metricsFile": "DOCS/PIPELINE_METRICS.md",
+    "progressFile": "DOCS/PROGRESS.md",
+    "architectureFile": "DOCS/ARCHITECTURE.md"
+  }
+}

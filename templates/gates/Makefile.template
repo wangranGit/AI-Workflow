@@ -1,0 +1,39 @@
+# {{PROJECT_NAME}} 自动化本地门禁 Makefile
+# 目标：实现本地秒级自动化校验，不浪费大模型 Token
+
+.PHONY: all check test lint clean help
+
+all: check
+
+## 显示帮助
+help:
+	@echo "可用指令:"
+	@echo "  make check  - 运行全量门禁检查 (编译、单元测试与代码风格)"
+	@echo "  make test   - 仅运行单元测试"
+	@echo "  make lint   - 运行静态代码检查"
+	@echo "  make clean  - 清理构建产物与临时文件"
+
+## 全量门禁校验入口 (供流水线 Step 7 调用)
+check: lint test
+	@echo "✅ [Gate] 全量门禁检查全部通过！"
+
+## 单元测试执行 (按实际项目工具链配置，如 swift test / go test / pytest / npm test)
+test:
+	@echo "🚀 [Gate] 正在执行单元测试..."
+	@# 示例占位：请根据实际语言工具链启用
+	@# swift test --parallel
+	@# go test -race ./...
+	@# pytest
+	@# npm test
+	@echo "✅ [Gate] 单元测试通过！"
+
+## 静态分析与规范检查
+lint:
+	@echo "🔍 [Gate] 正在执行代码规范与静态分析..."
+	@# 示例占位：swiftlint / golangci-lint / flake8 / eslint
+	@echo "✅ [Gate] 代码规范检查通过！"
+
+## 清理产物
+clean:
+	@echo "🧹 [Gate] 清理构建产物..."
+	@rm -rf build .build dist
