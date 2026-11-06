@@ -1,6 +1,6 @@
 # AI-Workflow: 通用商业级 AI 增强型研发生命周期脚手架模版
 
-> 面向生产级交付质量的通用 AI 协作研发生命周期治理框架。通过**刚性十步协同状态机**、**三角色专职代理分工**、**客观七维盲审一票否决制**与**本地自动化门禁**，彻底根除大模型在编码场景下的“幻觉编码、代码膨胀、自审自编、破坏架构、测试侵入”等系统性缺陷。
+> 面向生产级交付质量的通用 AI 协作研发生命周期治理框架。通过**刚性十步协同状态机**、**三角色专职代理分工**、**客观七维盲审一票否决制**、**本地自动化门禁**与**多工程矩阵防漂移沙盒**，彻底根除大模型在编码场景下的“幻觉编码、代码膨胀、自审自编、破坏架构、测试侵入”等系统性缺陷。
 
 ---
 
@@ -12,67 +12,59 @@
    - **Component Coder (专职开发代理)**：窄上下文作业，专注遵循 Protocol 契约，单文件不超过 500 行，生产代码 0 测试入侵；
    - **Code Reviewer (独立客观审查代理)**：只读权限，执行七维盲审与**一票否决制**。
 3. **零 Token 机械门禁**：单元测试、语法检查与代码静态分析必须由本地原生工具链秒级完成，杜绝浪费 Token 当编译器。
-4. **全生命周期可观测性**：基于指标文档全流程追踪主干污染率、代码行数警戒、审查拦截率及用户纠偏教训台账。
+4. **全生命周期双向闭环**：不仅支持下游无损拉取升级，更支持业务项目安全反哺模版，配备自动化沙盒矩阵测试彻底杜绝规则冲突与商业标识泄露。
 
 ---
 
-## 🚀 极简接入指南 (新项目使用)
+## 🚀 核心工具链矩阵
 
-### 方式 1：本地直接执行接入 (推荐)
-在你的新工程根目录下运行以下命令（传入 AI-Workflow 模版目录路径）：
-```bash
-/path/to/AI-Workflow/scripts/setup.sh
-```
-或者在当前目标项目目录下直接指定运行：
-```bash
-bash /Users/wangran/Desktop/AI-Workflow/scripts/setup.sh .
-```
-
-### 方式 2：托管至 Git 远程仓库后通过 curl 接入
-将本模版仓库 Push 到团队 Git 仓库（如 GitLab / GitHub）后，新项目仅需一行命令：
-```bash
-curl -fsSL https://<your-git-host>/AI-Workflow/raw/main/scripts/setup.sh | bash
-```
-
-### 接入后自动就绪的资产：
-- ✅ `AGENTS.md`：根目录总控规则（自动适配项目名、主干分支、门禁指令与行数阈值）；
-- ✅ `workflow.config.json`：项目级研发配置文件；
-- ✅ `.agents/`：专职 Coder 与 Reviewer Prompt、治理法则及流水线技能；
-- ✅ `DOCS/`：系统架构设计、任务追踪看板、流水线指标与 RFC 模板；
-- ✅ `Makefile`：本地秒级自动化门禁入口。
+| 脚本工具 | 定位与核心职责 | 安全防护与合规卡点 |
+| :--- | :--- | :--- |
+| **[`scripts/setup.sh`](file:///Users/wangran/Desktop/AI-Workflow/scripts/setup.sh)** | **新工程一键接入**：自动推断参数、生成配置、植入代理 Prompt、文档骨架与门禁 | 自动参数化替换占位符，耗时 < 30 秒 |
+| **[`scripts/update.sh`](file:///Users/wangran/Desktop/AI-Workflow/scripts/update.sh)** | **上游模版拉取升级 (模版➔项目)**：自动拉取 Git 最新提交，同步最新规则与 Prompt | 🛡️ **严格保护**：项目级配置与业务任务文档绝不覆盖，输出差异看板并备份 `AGENTS.md.bak` |
+| **[`scripts/sync-upstream.sh`](file:///Users/wangran/Desktop/AI-Workflow/scripts/sync-upstream.sh)** | **业务实践安全反哺 (项目➔模版)**：将业务项目中调优的通用规则安全推回模版仓库 | 🔍 **严格拦截**：仅同步通用 `.agents/`，自动执行零商业标识扫描，模版端切独立贡献分支 |
+| **[`scripts/verify_workflow.sh`](file:///Users/wangran/Desktop/AI-Workflow/scripts/verify_workflow.sh)** | **全功能自动化 CI 门禁矩阵**：多项目协同、模版合并时的终极质检武器 | 🧪 **沙盒矩阵**：静态零标识 + 占位符完整性 + 全新接入沙盒 + 升级兼容性沙盒 + 反哺沙盒 |
 
 ---
 
-## 🔄 平滑升级指南 (模版如何演进更新)
+## 📖 极简操作指南
 
-当上游 AI-Workflow 模版发布新版本（Prompt 调优、新审查维度、规则优化）时，下游项目可无损升级：
-
-在项目根目录下执行：
+### 1. 新项目接入
+在任何新项目根目录下运行：
 ```bash
-bash /path/to/AI-Workflow/scripts/update.sh
+/path/to/AI-Workflow/scripts/setup.sh .
 ```
 
-### 升级保护策略：
-- 🛡️ **绝对保护（不覆盖）**：
-  - `workflow.config.json`（保留项目已配置的门禁命令与自定义规则）
-  - `DOCS/PROGRESS.md`（保留项目实际任务看板）
-  - `DOCS/ARCHITECTURE.md`（保留项目实际架构文档）
-  - `DOCS/PIPELINE_METRICS.md`（保留项目历史度量与纠偏台账）
-- 🔄 **自动同步更新**：
-  - `.agents/agents/`（更新最新开发与审查 Subagent Prompt）
-  - `.agents/rules/`（更新最新治理红线与调度协议）
-  - `.agents/skills/`（更新最新自检与度量技能）
-  - `AGENTS.md`（以最新模板重新渲染，原文件自动备份为 `AGENTS.md.bak`）
+### 2. 下游项目升级模版
+在已有项目根目录下运行：
+```bash
+/path/to/AI-Workflow/scripts/update.sh .
+```
+终端将自动拉取远程最新模版，并打印 **“下游规则变更差异看板 (Workflow Diff)”**。
+
+### 3. 将项目中的工作流优化反哺回模版
+当业务项目打磨了更高效的 Prompt 或审查规则，在项目根目录下运行：
+```bash
+/path/to/AI-Workflow/scripts/sync-upstream.sh .
+```
+脚本将自动执行商业敏感词拦截，并在模版仓库中生成隔离分支（如 `contrib/<project>_<timestamp>`），等待 Maintainer 审阅合入。
+
+### 4. 模版仓库多项目合并自检 (CI Gate)
+模版 Maintainer 在合并任何改动前，运行：
+```bash
+bash scripts/verify_workflow.sh
+```
+必须 4 项矩阵（零标识、契约完整性、全新接入沙盒、老项目保护沙盒）全部 100% 绿灯方可合入主干发布新版本。
 
 ---
 
-## ⚙️ 配置文件字典说明 (`workflow.config.json`)
+## ⚙️ 配置文件说明 (`workflow.config.json`)
 
 ```json
 {
   "projectName": "MyProject",          // 项目名称
   "projectType": "general",            // 工程类型 (general / swift / go / node / python)
-  "version": "1.0.0",                  // 配置文件版本
+  "version": "1.1.0",                  // 配置文件版本
   "git": {
     "mainBranch": "main",              // 主干分支名称 (受保护分支)
     "featureBranchPrefix": "feature/", // 功能分支前缀
@@ -94,13 +86,3 @@ bash /path/to/AI-Workflow/scripts/update.sh
   }
 }
 ```
-
----
-
-## 🛡️ 零商业标识与合规保障
-
-本模版已内置自动化合规检查工具，严禁任何业务特定标签或第三方侵权商标：
-```bash
-bash scripts/verify_workflow.sh
-```
-确保全生命周期交付的通用性、中立性与可移植性。
