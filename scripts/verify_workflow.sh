@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# AI-Workflow 全功能 CI 门禁与多工程沙盒矩阵自检工具 (Verify Script - v1.1.0)
+# AI-Workflow 全功能 CI 门禁与多工程沙盒矩阵自检工具 (Verify Script - v1.2.0)
 # 作为多项目更新、协同共建时的终极自动化质检武器。
 # 检验维度：
 # 1. 静态检测：零商业标识与第三方侵权商标检测 (Zero-Leak)
@@ -29,7 +29,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TEMPLATE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 
 echo -e "${BOLD}${BLUE}==================================================================${RESET}"
-echo -e "${BOLD}${BLUE}    🛡️  AI-Workflow 全功能自动化 CI 门禁矩阵测试启动 (v1.1.0)     ${RESET}"
+echo -e "${BOLD}${BLUE}    🛡️  AI-Workflow 全功能自动化 CI 门禁矩阵测试启动 (v1.2.0)     ${RESET}"
 echo -e "${BOLD}${BLUE}==================================================================${RESET}"
 
 # ------------------------------------------------------------------------------
@@ -99,7 +99,9 @@ REQUIRED_FILES=(
     "scripts/sync-upstream.sh"
     "scripts/verify_workflow.sh"
     ".agents/agents/component-coder.md"
+    ".agents/agents/unit-tester.md"
     ".agents/agents/code-reviewer.md"
+    ".agents/agents/doc-architect.md"
     ".agents/rules/pipeline_governance.md"
     ".agents/skills/pipeline-core/SKILL.md"
     "templates/AGENTS.template.md"
@@ -116,7 +118,7 @@ for file in "${REQUIRED_FILES[@]}"; do
         exit 1
     fi
 done
-log_success "通过：所有 18 项核心模版文件全部就绪！"
+log_success "通过：所有 ${#REQUIRED_FILES[@]} 项核心模版文件全部就绪！"
 
 # ------------------------------------------------------------------------------
 # 阶段 3: 脚本执行权限与语法解析校验
@@ -144,12 +146,14 @@ FRESH_PROJECT="${SANDBOX_ROOT}/FreshProject"
 mkdir -p "${FRESH_PROJECT}"
 bash "${TEMPLATE_ROOT}/scripts/setup.sh" "${FRESH_PROJECT}" >/dev/null
 
-# 断言核心文件生成
+# 断言核心文件与5角色生成
 if [ ! -f "${FRESH_PROJECT}/workflow.config.json" ] || \
    [ ! -f "${FRESH_PROJECT}/AGENTS.md" ] || \
+   [ ! -f "${FRESH_PROJECT}/.agents/agents/unit-tester.md" ] || \
+   [ ! -f "${FRESH_PROJECT}/.agents/agents/doc-architect.md" ] || \
    [ ! -f "${FRESH_PROJECT}/DOCS/ARCHITECTURE.md" ] || \
    [ ! -f "${FRESH_PROJECT}/Makefile" ]; then
-    log_error "全新接入测试失败：核心文件未成功生成！"
+    log_error "全新接入测试失败：核心文件或5角色未成功生成！"
     exit 1
 fi
 
@@ -234,7 +238,7 @@ echo -e "${BOLD}${GREEN}  🎉 恭喜！AI-Workflow 全功能 CI 门禁矩阵测
 echo -e "${BOLD}${GREEN}==================================================================${RESET}"
 echo "测试总结报告:"
 echo "  1. 静态检测: 0 商业标识残留 / 0 第三方侵权商标"
-echo "  2. 契约检测: 核心占位符完好 / 18 项模版文件无缺失"
+echo "  2. 契约检测: 核心占位符完好 / 20 项模版文件无缺失"
 echo "  3. 脚本语法: setup.sh / update.sh / sync-upstream.sh / verify 严格合规"
 echo "  4. 沙盒矩阵: 全新接入顺利 / 老项目配置 100% 受保护 / 反向同步安全隔离"
 echo -e "${GREEN}==================================================================${RESET}"
