@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # ==============================================================================
-# AI-Workflow 增量无损平滑更新脚本 (Update Script - v1.1.0)
+# AI-Workflow 增量无损平滑更新脚本 (Update Script - v1.2.1)
 # 功能：
-# 1. 自动检测上游 Git 仓库状态，拉取最新模版代码 (git pull)
+# 1. 自动检测上游 Git 仓库状态，拉取最新模版代码 (git pull / 远端拉取)
 # 2. 差异对比与变更摘要看板 (Workflow Diff Summary)
 # 3. 严格保护项目级配置与业务文档，无损更新通用规则与 Prompt
 # ==============================================================================
@@ -21,38 +21,58 @@ log_success() { echo -e "${GREEN}[SUCCESS]${RESET} $1"; }
 log_warn() { echo -e "${YELLOW}[WARN]${RESET} $1"; }
 log_error() { echo -e "${RED}[ERROR]${RESET} $1"; }
 
+DEFAULT_REMOTE_REPO="https://github.com/wangranGit/AI-Workflow.git"
+CLEANUP_TEMP_DIR=""
+
+cleanup() {
+    if [ -n "${CLEANUP_TEMP_DIR}" ] && [ -d "${CLEANUP_TEMP_DIR}" ]; then
+        rm -rf "${CLEANUP_TEMP_DIR}"
+    fi
+}
+trap cleanup EXIT
+
 # 1. 确定目标项目目录 (默认为当前工作目录，或通过第1参数指定)
 TARGET_DIR="${1:-$(pwd)}"
 TARGET_DIR="$(cd "${TARGET_DIR}" && pwd)"
 
 # 2. 确定模版来源
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-TEMPLATE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" 2>/dev/null && pwd || echo "")"
+TEMPLATE_ROOT=""
 
 UPSTREAM_META="${TARGET_DIR}/.agents/.meta/upstream.env"
 if [ -f "${UPSTREAM_META}" ]; then
-    # 读取上次安装的模版路径
     # shellcheck disable=SC1090
     source "${UPSTREAM_META}"
-    if [ -n "${TEMPLATE_SOURCE:-}" ] && [ -d "${TEMPLATE_SOURCE}" ]; then
+    if [ -n "${LOCAL_TEMPLATE_PATH:-}" ] && [ -d "${LOCAL_TEMPLATE_PATH}/.agents" ]; then
+        TEMPLATE_ROOT="${LOCAL_TEMPLATE_PATH}"
+    elif [ -n "${TEMPLATE_SOURCE:-}" ] && [ -d "${TEMPLATE_SOURCE}/.agents" ]; then
         TEMPLATE_ROOT="${TEMPLATE_SOURCE}"
     fi
+fi
+
+if [ -z "${TEMPLATE_ROOT}" ] && [ -n "${SCRIPT_DIR}" ] && [ -d "${SCRIPT_DIR}/../.agents" ]; then
+    TEMPLATE_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
+fi
+
+# 若本地路径仍为空，直接浅克隆远端模版
+if [ -z "${TEMPLATE_ROOT}" ] || [ ! -d "${TEMPLATE_ROOT}/.agents" ]; then
+    log_info "正在从远端 Git 仓库拉取最新 AI-Workflow 模版..."
+    CLEANUP_TEMP_DIR="$(mktemp -d)"
+    git clone --depth 1 "${DEFAULT_REMOTE_REPO}" "${CLEANUP_TEMP_DIR}" >/dev/null 2>&1
+    TEMPLATE_ROOT="${CLEANUP_TEMP_DIR}"
 fi
 
 log_info "目标项目目录: ${TARGET_DIR}"
 log_info "上游模版根目录: ${TEMPLATE_ROOT}"
 
-# 3. 检查并拉取上游模版仓库的最新 Git 更新
-if [ -d "${TEMPLATE_ROOT}/.git" ]; then
-    log_info "检测到模版仓库具备 Git 管理，正在检查上游更新..."
+# 3. 如果本地模版目录是一个 Git 仓库，尝试 git pull 更新
+if [ -d "${TEMPLATE_ROOT}/.git" ] && [ -z "${CLEANUP_TEMP_DIR}" ]; then
+    log_info "检测到本地模版仓库具备 Git 管理，正在检查上游更新..."
     (
         cd "${TEMPLATE_ROOT}"
-        # 如果存在远程追踪分支，则尝试拉取
         if git remote -v | grep -q "origin"; then
             log_info "正在执行 git pull origin main 拉取最新模版变更..."
             git pull --ff-only origin main || log_warn "拉取远程失败或无网络，使用本地当前版本继续。"
-        else
-            log_info "模版仓库暂未配置 remote origin，使用本地模版最新 commit 推进。"
         fi
     )
 fi
@@ -130,8 +150,13 @@ cp -R "${TEMPLATE_ROOT}/.agents/skills/pipeline-core/"* "${TARGET_DIR}/.agents/s
 mkdir -p "${TARGET_DIR}/DOCS/TEMPLATES"
 cp "${TEMPLATE_ROOT}/templates/DOCS/RFC_DESIGN_TEMPLATE.md" "${TARGET_DIR}/DOCS/TEMPLATES/"
 
-# 9. 更新元信息记录
-echo "TEMPLATE_SOURCE=\"${TEMPLATE_ROOT}\"" > "${TARGET_DIR}/.agents/.meta/upstream.env"
+# 9. 更新元信息记录与配套脚本
+mkdir -p "${TARGET_DIR}/scripts"
+cp "${TEMPLATE_ROOT}/scripts/update.sh" "${TARGET_DIR}/scripts/"
+cp "${TEMPLATE_ROOT}/scripts/sync-upstream.sh" "${TARGET_DIR}/scripts/"
+chmod +x "${TARGET_DIR}/scripts/"*.sh
+
+echo "TEMPLATE_SOURCE=\"${DEFAULT_REMOTE_REPO}\"" > "${TARGET_DIR}/.agents/.meta/upstream.env"
 echo "UPDATED_DATE=\"$(date)\"" >> "${TARGET_DIR}/.agents/.meta/upstream.env"
 
 echo ""
@@ -143,8 +168,8 @@ echo "  [保护] workflow.config.json: 保持项目个性化门禁与阈值不�
 echo "  [保护] DOCS/PROGRESS.md: 保持现有任务追踪看板不变"
 echo "  [保护] DOCS/ARCHITECTURE.md: 保持现有架构设计文档不变"
 echo "  [保护] DOCS/PIPELINE_METRICS.md: 保持历史指标与教训台账不变"
-echo "  [更新] .agents/agents/: 已更新最新专职 Coder 与 Reviewer 规范"
-echo "  [更新] .agents/rules/: 已更新最新九大红线与协同法则"
+echo "  [更新] .agents/agents/: 已更新最新 5 角色 (Coder/Tester/Reviewer/DocArchitect) 规范"
+echo "  [更新] .agents/rules/: 已更新最新九大红线与五角色协同法则"
 echo "  [更新] .agents/skills/: 已更新最新流水线自检与度量技能"
 echo "  [更新] AGENTS.md: 已根据最新模版更新 (原文件已备份为 AGENTS.md.bak)"
 echo -e "${GREEN}==================================================================${RESET}"
